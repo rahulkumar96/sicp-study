@@ -37,3 +37,8 @@
 ;; Unfortunately, Alyssa's new-if is a function, and the applicative
 ;; order rules say that the sqrt-iter recursion happens before the
 ;; new-if has a chance to choose between the true/false branches.
+;; 
+;; However if the interpreter is based on normal order evaluation
+;; rules, the code will work fine becuase then the base case will 
+;; checked after the arguments are copied as it is in place of the
+;; formal parameters of the new-if.
