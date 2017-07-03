@@ -14,40 +14,53 @@
 
 ;; ANSWER ------------------------------------------------------------
 
-;; The fixed epsilon means that the square root of a small number will
-;; not be very accurate.  In the extreme, numbers smaller than epsilon
-;; could be their own square roots (as far as the algorithm is
-;; concerned).
-;;
-;; The problem with a fixed size epsilon and large numbers is a bit
-;; different.  The small epsilon may cause the algorithm to iterate
-;; more often than would be strictly necessary.  In the extreme case
-;; where the magnitude of n is greater than the precision of the float
-;; point number representations, it is entire possible that the
-;; algorithm will never converge on an answer that is smaller than
-;; delta. 
-;;
-;; Making the epsilon relative to the guess corrects both of these
-;; issues.
+;; For small numbers the good-enough? test will fail because it will return
+;; true as soon as the (guess^2 - x) is less than the relative error specified,
+;; even though it might not be close to the actual result. Eg. for 1e-20 it returns
+;; 0.03125 but the correct answer is 1e-10.
+;; 
+;; The case for big numbers is a bit different. The precision is limited when performing
+;; arithmetic operations on large numbers, eg. one cannot subtract 0.001 from 
+;; say 95453645569655557844556846841 and expect to get the correct result.
+;; There is a margin for error called epsilon defined for floating point precision,
+;; if that epsilon exceeds the relative error (0.001 here) it might happen that for huge 
+;; numbers the result will never converge and the program can get in a state of infinite
+;; loop. So it might happen that while converging the round off leads to a state which takes
+;; the guess to a value is never quite close enough to get the result.
 
-(define (sqrt x)
-  (define (average x y)
-    (/ (+ x y) 2))
+;; Both of these problems can be dealt with if we check for relative change in guess
+;; compared to a small fraction of the guess.
+;; Checking against variable tolerance will solve the small numbers issue and checking for 
+;; change in guess w.r.t to previous guess will solve the infinite loop issue.
+;; However if we use them together, then in case of large numbers the tolerance may be 
+;; more than what we may desire, so we can choose to just check the relative guesses and still
+;; keep a fixed tolerance.
 
-  (define (improve guess x)
-    (average guess (/ x guess)))
+;; Code to handle both the cases:
 
-  ;; New version of good-enough? that is relative to the size of the
-  ;; guess.
-  (define (good-enough? guess x)
-    (< (abs (- guess (/ x guess)))
-       (/ guess 1000000)) )
+(define (root x)
+  (sqrt-loop x 1.0))
 
-  (define (try guess)
-    (if (good-enough? guess x)
-        guess
-        (try (improve guess x))))
+(define (sqrt-loop x guess)
+  (if (> x 1)
+      (if (good-enough-large? x guess)
+          guess
+          (sqrt-loop x (improve-guess x guess)))
+      
+      (if (good-enough-small? x guess)
+          guess
+          (sqrt-loop x (improve-guess x guess)))))
+  
+(define (good-enough-large? x guess)
+  (> 0.01 (abs(- (/ x guess) guess))))
 
-  (try 1.0))
+(define (good-enough-small? x guess)
+  (> (/ guess 1000000) (abs(- (square guess) x))))
 
-'done
+(define (improve-guess x guess)
+  (average guess (/ x guess)))
+
+(define (average a b)
+  (/ (+ a b) 2))
+
+(define (square x) (* x x))
