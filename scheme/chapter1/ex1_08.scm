@@ -11,23 +11,32 @@
 
 ;; ANSWER ------------------------------------------------------------
 
-(define (cbrt x)
-  (define (square x) (* x x))
+;; Similar to Ex 1.7
 
-  ;; New improve formula for cube root.
-  (define (improve guess x)
-    (/ (+ (/ x (square guess)) (* 2 guess))
-       3) )
+(define (cube-root x)
+  (cube-root-loop x 1.0))
 
-  ;; New good enough test for cube root.  Using the relative epsilon
-  ;; code from ex1.7.
-  (define (good-enough? guess x)
-    (< (abs (- guess (/ x (square guess))))
-       (/ guess 1000000)) )
+(define (cube-root-loop x guess)
+  (if (> x 1)
+      (if (good-enough-large? x guess)
+          guess
+          (cube-root-loop x (improve-guess x guess)))
+      
+      (if (good-enough-small? x guess)
+          guess
+          (cube-root-loop x (improve-guess x guess)))))
   
-  (define (try guess)
-    (if (good-enough? guess x)
-         guess
-        (try (improve guess x))))
+(define (good-enough-large? x guess)
+  (> 0.01 (abs(- (/ x (square guess)) guess))))
 
-  (try 1.0))
+(define (good-enough-small? x guess)
+  (> (/ guess 1000000) (abs(- (cube guess) x))))
+
+(define (improve-guess x guess)
+  (/ (+ (/ x (square guess))
+        (* 2 guess))
+     3))
+
+(define (cube x) (* x x x))    
+(define (square x) (* x x))
+
