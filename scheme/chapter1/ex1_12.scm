@@ -9,33 +9,11 @@
 
 ;; ANSWER ------------------------------------------------------------
 
-(define (pascal-element row col)
-  (define (edge? row col)
-    (or (= row 1) (= col 1) (= row col)))
-  (cond ((edge? row col) 1)
-        (else (+ (pascal-element (- row 1) (- col 1))
-                 (pascal-element (- row 1) col)))))
+(define (pascal-element x y)
+  (define (edge?)
+    (or (= x y) (= y 0)))
+  (cond ((edge?) 1)
+        (else (+ (pascal-element (- x 1) (- y 1))
+         (pascal-element (- x 1) y)))))
 
-;; -------------------------------------------------------------------
-;; ANOTHER ANSWER ...
-;; That is way over complicated because I didn't read the instructions
-;; carefully.
-;; -------------------------------------------------------------------
-
-;; Make the next row in the triangle from the current row.
-(define (make-row row)
-  (define (make-short-row row)
-    (cond ((null? row) ())
-          ((null? (cdr row)) '(1))
-          (else (cons (+ (car row) (cadr row))
-                      (make-short-row (cdr row))))))
-  (cons 1 (make-short-row row)))
-
-;; Make a pascals triangle of 'n' rows.
-(define (pascal n)
-  (define (pasc i prev)
-    (cond ((zero? i) ())
-          (else (let ((row (make-row prev)))
-                  (cons row (pasc (- i 1) row))))))
-  (pasc n ()))
 
