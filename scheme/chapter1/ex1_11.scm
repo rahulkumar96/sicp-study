@@ -14,11 +14,10 @@
 
 ;; Now the iterative version.
 
-(define (f2 n)
-  (define (iter i a1 a2 a3)
-    (if (= n i)
-        a1
-        (iter (+ 1 i) (+ a1 (* 2 a2) (* 3 a3)) a1 a2)))
-  (if (< n 3)
-      n
-      (iter 3 4 2 1)))
+(define (f-iter n)
+  (define (f-iter-helper a b c n)
+    (cond ((< n 3) n)
+          ((= n 3) c)
+          (else (f-iter-helper b c (+ c (* 2 b) (* 3 a)) (- n 1)))))
+  (f-iter-helper 1 2 4 n))
+
